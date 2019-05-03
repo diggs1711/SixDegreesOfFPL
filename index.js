@@ -27,16 +27,25 @@ class SixDegreesOfFPL {
         return [manager1, manager2]
     }
 
-    async onSearchBtnClicked() {
+    onSearchBtnClicked() {
         const [m1, m2] = this.getManagersIds()
-        const res1 = await this.getManagersLeagues(1);
-        const res2 = await this.getManagersLeagues(65);
+        this.search(m1, m2);
+    }
+
+    async search(managerId1, managerId2) {
+        const res1 = await this.getManagersLeagues(managerId1);
+        const res2 = await this.getManagersLeagues(managerId2);
 
         const leagues1 = await res1.json()
         const leagues2 = await res2.json()
 
-        this.searchLeaguesForId(leagues1.leagues.classic, 65);
-        this.searchLeaguesForId(leagues2.leagues.classic, 1);
+        const league1 = await this.searchLeaguesForId(leagues1.leagues.classic, managerId2);
+        if (league1) {
+            console.log("found manager 1 in league: ", league1)
+        } else {
+            console.log("not found")
+        }
+        this.searchLeaguesForId(leagues2.leagues.classic, managerId1);
     }
 
     async searchLeaguesForId(leagues, id) {
@@ -48,15 +57,16 @@ class SixDegreesOfFPL {
             if (league.league_type !== "s") {
                 let members = await this.getLeagueMembers(league.id);
                 if (this.isPlayerMemberOfLeague(members, id)) {
-                    console.log(league, "hello");
+                    return league;
                 }
             }
         }
+        return null;
     }
 
     isPlayerMemberOfLeague(members, id) {
         for (let member of members) {
-            if (member.entry === id) {
+            if (member.entry == id) {
                 return true
             }
         }
